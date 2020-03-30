@@ -34,7 +34,7 @@ sys.path.append('rl')
 INPUT_SHAPE = (84, 84)
 WINDOW_LENGTH = 4
 EXPLORE_MEMORY_STEPS = 5
-MEMORY_SIZE = 50000
+MEMORY_SIZE = 75000
 
 
 class FragileRunner:
@@ -55,8 +55,8 @@ class FragileRunner:
             env=self.env, critic=self.dt)
         self.prune_tree = True
         # A bigger number will increase the quality of the trajectories sampled.
-        self.n_walkers = 8
-        self.max_iters = 100  # Increase to sample longer games.
+        self.n_walkers = 16
+        self.max_iters = 1000  # Increase to sample longer games.
         self.reward_scale = 2  # Rewards are more important than diversity.
         self.distance_scale = 1
         self.minimize = False  # We want to get the maximum score possible.
@@ -80,34 +80,36 @@ class FragileRunner:
         swarm_viz = AtariViz(swarm)
         swarm_viz.plot()
 
-        try:
-            _ = swarm_viz.run(print_every=1000)
+        print("Creating fractal replay memory...")
 
-            leafs = swarm.tree.get_leaf_nodes()
+        while len(self.memory) < MEMORY_SIZE:
+            try:
+                _ = swarm_viz.run(print_every=1000)
 
-            print("Creating fractal replay memory...")
+                leafs = swarm.tree.get_leaf_nodes()
 
-            # Handles frame skipping (4) at every iteration
-            env_name = self.game_name
-            env = gym.make(env_name)
+                env_name = self.game_name
+                env = gym.make(env_name)
 
-            for i in range(len(leafs)):
-                path = swarm.tree.get_branch(leafs[i], from_hash=False)
-                current_state = env.reset()
-                for a in path[1]:
+                for i in range(len(leafs)):
+                    path = swarm.tree.get_branch(leafs[i], from_hash=False)
+                    current_state = env.reset()
+                    for a in path[1]:
 
-                    next_state, reward, terminal, _ = env.step(a)
+                        next_state, reward, terminal, _ = env.step(a)
 
-                    self.memory.append([current_state, a, reward, terminal])
+                        self.memory.append(
+                            [current_state, a, reward, terminal])
 
-                    if len(self.memory) > MEMORY_SIZE:
-                        self.memory.pop(0)
-                    time.sleep(0.00005)
-                    current_state = next_state
-        except:
-            pass
-        
-        print("Fractal replay memory size: ", len(self.memory))
+                        if len(self.memory) > MEMORY_SIZE:
+                            self.memory.pop(0)
+                        time.sleep(0.00005)
+                        current_state = next_state
+
+                print("Fractal replay memory size: ", len(self.memory))
+
+            except:
+                pass
 
         return self.memory
 
@@ -210,7 +212,7 @@ policy = EpsGreedyQPolicy(.01)
 
 dqfd = DQfDAgent(model=model, nb_actions=nb_actions, policy=policy, memory=memory,
                  processor=processor, enable_double_dqn=True, enable_dueling_network=True, gamma=.99, target_model_update=10000,
-                 train_interval=4, delta_clip=1., pretraining_steps=750, n_step=10)
+                 train_interval=4, delta_clip=1., pretraining_steps=75000, n_step=10)
 
 lr = .00025/4
 dqfd.compile(Adam(lr=lr), metrics=['mae'])
