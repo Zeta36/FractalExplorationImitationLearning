@@ -55,7 +55,7 @@ class FragileRunner:
             env=self.env, critic=self.dt)
         self.prune_tree = True
         # A bigger number will increase the quality of the trajectories sampled.
-        self.n_walkers = 16
+        self.n_walkers = 64
         self.max_iters = 1000  # Increase to sample longer games.
         self.reward_scale = 2  # Rewards are more important than diversity.
         self.distance_scale = 1
@@ -86,25 +86,27 @@ class FragileRunner:
             try:
                 _ = swarm_viz.run(print_every=1000)
 
-                leafs = swarm.tree.get_leaf_nodes()
+                print("Max. fractal cum_rewards:", max(swarm.walkers.states.cum_rewards))
+
+                best_ix = swarm.walkers.states.cum_rewards.argmax()
+                best_id = swarm.walkers.states.id_walkers[best_ix]
+                path = swarm.tree.get_branch(best_id, from_hash=True)
 
                 env_name = self.game_name
                 env = gym.make(env_name)
 
-                for i in range(len(leafs)):
-                    path = swarm.tree.get_branch(leafs[i], from_hash=False)
-                    current_state = env.reset()
-                    for a in path[1]:
+                current_state = env.reset()
+                for a in path[1]:
 
-                        next_state, reward, terminal, _ = env.step(a)
+                    next_state, reward, terminal, _ = env.step(a)
 
-                        self.memory.append(
-                            [current_state, a, reward, terminal])
+                    self.memory.append(
+                        [current_state, a, reward, terminal])
 
-                        if len(self.memory) > MEMORY_SIZE:
-                            self.memory.pop(0)
-                        time.sleep(0.00005)
-                        current_state = next_state
+                    if len(self.memory) > MEMORY_SIZE:
+                        self.memory.pop(0)
+                    time.sleep(0.00005)
+                    current_state = next_state
 
                 print("Fractal replay memory size: ", len(self.memory))
 
