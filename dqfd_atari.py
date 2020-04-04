@@ -23,11 +23,11 @@ def main():
     WINDOW_LENGTH = 4
     # Runner parameters
     EXPLORE_MEMORY_STEPS = 5
-    fractal_memory_size = 1000
+    fractal_memory_size = 10000
     n_walkers = 32
     n_workers = 8
     max_epochs_per_game = 2000
-    score_limit_per_game = 1000
+    score_limit_per_game = 1500
     # Training parameters
     n_training_steps = 1000
     pretraining_steps = 75000
