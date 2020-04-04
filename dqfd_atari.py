@@ -106,7 +106,7 @@ def main():
         dqfd.fit(
             env,
             callbacks=callbacks,
-            nb_steps=10000000,
+            n_training_steps=10000000,
             verbose=0,
             n_max_episode_steps=n_max_episode_steps,
         )
