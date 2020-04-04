@@ -30,9 +30,9 @@ def main():
     score_limit_per_game = 1500
     # Training parameters
     n_training_steps = 1000
-    pretraining_steps = 75000
+    pretraining_steps = 15000
     target_model_update = 10000
-    n_max_episode_steps = 10000000
+    n_max_episode_steps = 1000000
     rl_training_memory_max_size = 100000
     # testing
     n_episodes_test = 10
